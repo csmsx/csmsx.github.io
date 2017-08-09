@@ -931,6 +931,36 @@ a:not([href]):not([tabindex]):hover {
   line-height: 25px;
   margin-bottom: 20px;
 }
+/* =========
+ * Manifesto
+ * ========= */
+#manifesto {
+}
+
+#manifesto p {
+  font-family: 'Lato', sans-serif;
+  color: #333;
+  font-size: 14px;
+  font-weight: 300;
+  background: #fff;
+}
+
+#manifesto ul {
+  margin-bottom: 18px;
+}
+
+#manifesto ul li {
+  list-style: circle inside;
+  padding-left: 40px;
+}
+
+#manifesto img {
+  display: inherit;
+  margin: 0 auto;
+  float: none;
+  margin-bottom: 10px;
+  width: 50%;
+}
 /* ==========================================================================
     Contact Us
     ========================================================================== */
