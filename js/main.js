@@ -131,3 +131,10 @@
     "use strict";
     $('#loader').fadeOut();
    });
+
+/*
+ * Item clicker
+ */
+   $('.item-boxes').click(function () {
+     document.location = this.id + ".html";
+   });
