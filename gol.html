@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>生命維持</title>
+
+    <style>
+      #environment {
+        margin: auto;
+        display: block;
+        padding: 15px;
+      }
+
+      #controls ul {
+        margin: auto;
+        display: block;
+        list-style: none;
+      }
+
+      #run-pause {
+        margin: auto;
+        display: block;
+        padding: 15px;
+      }
+
+      #status-panel {
+        margin: auto;
+        display: block;
+        padding: 15px;
+        width: 100%;
+      }
+
+      #status-panel .status-item {
+        margin: auto;
+        display: inline-block;
+        padding-right: 30px;
+      }
+    </style>
+
+    <script src="./js/terra.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function(event) {
+        var environment = new terra.Terrarium(50, 50, {
+          id: 'environment',
+          //trails: 0.9,
+          periodic: true,
+          //background: [22, 22, 22],
+          insertAfter: document.getElementById('anchor')
+        });
+
+        terra.registerCreature({
+          type: 'grass',
+          color: [166, 226, 46],
+          size: 5,
+          reproduceLv: 0.9,
+          wait: function () { this.energy += 0.05; },
+          move: false,
+          hermaphrodite: true
+        });
+
+        terra.registerCreature({
+          type: 'herbivore',
+          color: [157, 76, 74],
+          sustainability: 3,
+          reproduceLv: 0.1,
+          wait: function () { this.energy -= 0.3; },
+          initialEnergy: 100,
+          maxEnergy: 1000,
+          getEnergyFrom: [ 'grass', 'lettuce' ]
+        });
+
+        terra.registerCreature({
+          type: 'carnivore',
+          color: [32, 32, 32],
+          size: 100,
+          sustainability: 2,
+          reproduceLv: 0.2,
+          wait: function () { this.energy -= 2.5; },
+          initialEnergy: 100,
+          maxEnergy: 1000,
+          getEnergyFrom: [ 'herbivore' ]
+        });
+
+        terra.registerCreature({
+          type: 'lettuce',
+          color: [46, 157, 101],
+          size: 10,
+          reproduceLv: 0.9,
+          wait: function () { this.energy += 0.05; },
+          move: false,
+          hermaphrodite: true
+        });
+
+        var carnivoreSwitch = document.getElementById('carnivore');
+        var herbivoreSwitch = document.getElementById('herbivore');
+        var grassSwitch = document.getElementById('grass');
+        var lettuceSwitch = document.getElementById('lettuce');
+
+        var carnivoreCount = 10;
+        var herbivoreCount = 10;
+        var grassCount = 10;
+        var lettuceCount = 10;
+
+        var carnivoreCounter = document.getElementById('carnivore-count');
+        var herbivoreCounter = document.getElementById('herbivore-count');
+        var grassCounter = document.getElementById('grass-count');
+        var lettuceCounter = document.getElementById('lettuce-count');
+
+        var resetCounters = function () {
+          carnivoreCount = 10;
+          carnivoreCounter.innerHTML = carnivoreCount;
+          herbivoreCount = 10;
+          herbivoreCounter.innerHTML = herbivoreCount;
+          grassCount = 10;
+          grassCounter.innerHTML = grassCount;
+          lettuceCount = 10;
+          lettuceCounter.innerHTML = lettuceCount;
+        };
+
+        var updateEnvironment = function () {
+          resetCounters();
+          var population = [];
+          if (grassSwitch.checked) {
+            population.push(['grass', grassCount]);
+          }
+          if (lettuceSwitch.checked) {
+            population.push(['lettuce', lettuceCount]);
+          }
+          if (carnivoreSwitch.checked) {
+            population.push(['carnivore', carnivoreCount]);
+          }
+          if (herbivoreSwitch.checked) {
+            population.push(['herbivore', herbivoreCount]);
+          }
+          environment.grid = environment.makeGridWithDistribution(population);
+        };
+
+        var updateCounters = function () {
+          carnivoreCount = 0;
+          herbivoreCount = 0;
+          grassCount = 0;
+          lettuceCount = 0;
+          for (var x in environment.grid) {
+            for (var y in environment.grid[x]) {
+              var spot = environment.grid[x][y]
+              if (spot.type == 'carnivore') {
+                carnivoreCount += 1;
+              } else if (spot.type == 'herbivore') {
+                herbivoreCount += 1;
+              } else if (spot.type == 'grass') {
+                grassCount += 1;
+              } else if (spot.type == 'lettuce') {
+                lettuceCount += 1;
+              }
+            }
+          }
+          carnivoreCounter.innerHTML = carnivoreCount;
+          herbivoreCounter.innerHTML = herbivoreCount;
+          grassCounter.innerHTML = grassCount;
+          lettuceCounter.innerHTML = lettuceCount;
+        };
+
+        var updateHandler = function (event) {
+          updateEnvironment();
+        };
+        carnivoreSwitch.addEventListener('click', updateHandler);
+        herbivoreSwitch.addEventListener('click', updateHandler);
+        grassSwitch.addEventListener('click', updateHandler);
+        lettuceSwitch.addEventListener('click', updateHandler);
+
+        var running = false;
+        var updateJobId = null;
+        var toggleRun = function () {
+          if (running) {
+            clearInterval(updateJobId);
+            environment.stop();
+            running = false;
+            updateJobId = null;
+          } else {
+            environment.animate();
+            running = true;
+            updateJobId = setInterval(updateCounters, 1000);
+          }
+        }
+
+        var toggleButton = document.getElementById('run-pause');
+        toggleButton.addEventListener('click', toggleRun);
+
+        updateEnvironment();
+        toggleRun();
+      });
+    </script>
+  </head>
+
+  <body>
+    <h1>生命維持</h1>
+    <div id="main">
+      <div id="simulator">
+        <div id="anchor">
+        </div>
+      </div>
+      <div id="controls">
+        <button id="run-pause">トグル</button>
+        <div id="status-panel">
+          <div class="status-item"><span id="herbivore-count"></span> 🐄</div>
+          <div class="status-item"><span id="carnivore-count"></span> 🐅</div>
+          <div class="status-item"><span id="grass-count"></span> ☘️</div>
+          <div class="status-item"><span id="lettuce-count"></span> 🥗</div>
+        </div>
+        <ul>
+          <li><input id="herbivore" type="checkbox" checked /> 草食動物</li>
+          <li><input id="carnivore" type="checkbox" checked /> 肉食動物</li>
+          <li><input id="grass" type="checkbox" checked /> 草</li>
+          <li><input id="lettuce" type="checkbox" checked /> レタス</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
